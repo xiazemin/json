@@ -1,0 +1,93 @@
+$ go build -gcflags "-N -l" -o m main.go
+
+(gdb) b 18
+Breakpoint 1 at 0x10bf40a: file /Users/didi/goLang/src/github.com/xiazemin/json/unmarshal/main.go, line 18.
+(gdb) r
+Starting program: /Users/didi/goLang/src/github.com/xiazemin/json/unmarshal/m
+[New Thread 0x1413 of process 4051]
+[New Thread 0x1503 of process 4051]
+[New Thread 0x1603 of process 4051]
+
+
+Thread 1 hit Breakpoint 1, main.main () at /Users/didi/goLang/src/github.com/xiazemin/json/unmarshal/main.go:18
+18              e:=json.Unmarshal([]byte(data), &dbgInfos)
+
+(gdb) s
+encoding/json.Unmarshal (data= []uint8 = {...}, v=..., ~r2=...) at /usr/local/go/src/encoding/json/decode.go:96
+96      func Unmarshal(data []byte, v interface{}) error {
+(gdb) s
+runtime.morestack_noctxt () at /usr/local/go/src/runtime/asm_amd64.s:422
+422             MOVL    $0, DX
+
+(gdb) b /usr/local/go/src/encoding/json/decode.go:101
+Breakpoint 2 at 0x10a73eb: file /usr/local/go/src/encoding/json/decode.go, line 101.
+
+(gdb) n
+
+Thread 1 hit Breakpoint 2, encoding/json.Unmarshal (data= []uint8 = {...}, v=..., ~r2=...)
+    at /usr/local/go/src/encoding/json/decode.go:101
+101             err := checkValid(data, &d.scan)
+
+
+(gdb) s
+encoding/json.checkValid (data= []uint8 = {...}, scan=0xc420082020, ~r2=...) at /usr/local/go/src/encoding/json/scanner.go:25
+25      func checkValid(data []byte, scan *scanner) error {
+
+
+(gdb) b /usr/local/go/src/encoding/json/scanner.go:30
+Breakpoint 3 at 0x10b2137: file /usr/local/go/src/encoding/json/scanner.go, line 30.
+
+ (gdb)  b /usr/local/go/src/encoding/json/scanner.go:29
+Breakpoint 4 at 0x10b2114: file /usr/local/go/src/encoding/json/scanner.go, line 29.
+
+(gdb) p *scan
+$2 = {step = {void (encoding/json.scanner *, uint8, int *)} 0xc420082020, endTop = false, parseState =  []int, err = {tab = 0x0,
+    data = 0x0}, redo = false, redoCode = 0, redoState = {void (encoding/json.scanner *, uint8, int *)} 0xc420082020, bytes = 1}
+
+(gdb)  b /usr/local/go/src/encoding/json/scanner.go:216
+Breakpoint 6 at 0x10b27dd: file /usr/local/go/src/encoding/json/scanner.go, line 216.
+(gdb) n
+
+Thread 1 hit Breakpoint 6, encoding/json.stateBeginValue (s=0xc420082020, c=91 '[', ~r2=17734144)
+    at /usr/local/go/src/encoding/json/scanner.go:216
+216             switch c {
+(gdb) p c
+$3 = 91 '['
+(gdb)  b /usr/local/go/src/encoding/json/scanner.go:223
+Breakpoint 7 at 0x10b29af: file /usr/local/go/src/encoding/json/scanner.go, line 223.
+(gdb) n
+231             case '0': // beginning of 0.123
+(gdb)
+
+
+gdb调试时出现 No symbol "XXXXX" in current context
+解决方法有两个：
+
+1、更新gdb；
+
+2、编译时将-g改为-gdwarf-2。
+
+(gdb) b /usr/local/go/src/encoding/json/decode.go:106
+Breakpoint 8 at 0x10a74db: file /usr/local/go/src/encoding/json/decode.go, line 106.
+(gdb) p d
+No symbol "d" in current context.
+
+https://www.php.cn/manual/view/35171.html
+
+(gdb) s
+encoding/json.(*decodeState).unmarshal (d=0xc420082000, v=..., err=...) at /usr/local/go/src/encoding/json/decode.go:169
+169     func (d *decodeState) unmarshal(v interface{}) (err error) {
+
+
+(gdb) p v
+$2 = {_type = 0x10cb480 <type.*+47872>, data = 0xc42000a060}
+
+(gdb) b /usr/local/go/src/encoding/json/decode.go:180
+Breakpoint 3 at 0x10a79ba: file /usr/local/go/src/encoding/json/decode.go, line 180.
+
+(gdb) b /usr/local/go/src/encoding/json/decode.go:187
+Breakpoint 4 at 0x10a7b07: file /usr/local/go/src/encoding/json/decode.go, line 187.
+
+
+
+
